@@ -31,7 +31,6 @@ webserver:
   middlewares:
     - DEFAULTS
     - SERVE_STATIC
-    - LOAD_NEW_FILES
     - BODY_PARSER
     - CAPTCHA
 
