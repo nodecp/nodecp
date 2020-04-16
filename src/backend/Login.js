@@ -14,8 +14,8 @@ EXPORTS.run = async function(req, res) {
       return res.send(captchaResult);
   }
 
-  let accounts = req.getDatabase().fetch('login', function(data) {
-    return data.userid.toLowerCase() === req.body.username.toLowerCase()
+  let accounts = req.getDatabase().fetch('login', {
+    userid: req.body.username.toLowerCase()
   });
 
   if (accounts.length < 1)

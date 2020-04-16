@@ -10,16 +10,8 @@ const ExtendedMap = require("./ExtendedMap");
 module.exports = class {
   constructor(options = {}) {
     Object.defineProperties(this, {
-      cache: {
-        value: new ExtendedMap()
-      },
-
       options: {
         value: options
-      },
-
-      defaultTableValues: {
-        value: new ExtendedMap()
       }
     });
 
@@ -36,22 +28,6 @@ module.exports = class {
 
   init() {
     this.db.query(`use ${this.options.database}`);
-    let tables = this.db.query("show tables");
-
-    // iterate the tables
-    for (let i = 0; i < tables.length; i++) {
-      let table = tables[i][`Tables_in_${this.options.database}`]
-      let query;
-
-      // get all default values & the structure then add it to the cache
-      this.defaultTableValues.set(table, this.db.query(`describe ${this.options.database}.${table}`));
-
-      // get all values of the table
-      query = this.db.query(`SELECT * FROM ${this.options.database}.${table}`);
-
-      // add the data to the cache
-      this.cache.set(table, query);
-    }
 
     return undefined;
   }
@@ -59,12 +35,20 @@ module.exports = class {
   /**
    * Fetches database data from the cache.
    * @param {String} table The table name to fetch data from
-   * @param {Function} filter The function to be used when filtering the array that was returned from the cache.
+   * @param {Object} filter An object of filters, the key is the column, the value of it is the value of the column
    * @returns {Array}
    */
 
   fetch(table, filter) {
-    return this.cache.get(table).filter(filter);
+    return this._get(table, filter);
+  }
+
+  checkTable(table) {
+    let query = this.db.query(`SELECT * FROM ${this.options.table}.${table}`);
+
+    if (query.length > 0)
+      return true;
+    else return false;
   }
 
   /**
@@ -80,31 +64,17 @@ module.exports = class {
     else if (typeof data !== "object" || Array.isArray(data))
       throw new Error("Invalid data given");
 
-    if (!this.cache.has(table))
-      throw new Error(`Table ${table} does not exist.`);
+    if (!this.checkTable(table))
+      throw new Error(`Table ${table} does not exist!`);
 
-    let _data = this.cache.ensure(table, []);
     let ENTRIES = Object.entries(data);
-    let defaultData = this.defaultTableValues.get(table);
-
     let COLUMNS = `(${ENTRIES.map(entry => entry[0]).join(', ')})`;
     let VALUES = `(${ENTRIES.map(() => '?').join(', ')})`;
-
     let parseData = [];
 
     for (let [, v] of ENTRIES) {
       parseData.push(v);
     }
-
-    for (let i = 0; i < defaultData.length; i++) {
-      if (!(defaultData[i].Field in data))
-        data[defaultData[i].Field] = !(isNaN(defaultData[i].Default)) ?
-        parseInt(defaultData[i].Default) :
-        defaultData[i].Default;
-    }
-
-    _data.push(data);
-    this.cache.set(table, _data);
 
     this.db.query(`INSERT INTO ${this.options.database}.${table} ${COLUMNS} VALUES ${VALUES}`, parseData);
 
@@ -119,28 +89,8 @@ module.exports = class {
    */
 
   remove(table, filter) {
-    const _table = this.cache.get(table);
-    
-    if (!_table)
-      throw new Error(`Table ${table} doesn't exist.`);
-
-    let tableData = _table.filter(this.createFilter(filter));
-    if (tableData.length < 1)
-      return false;
-
-    // iterate through filtered data
-    for (let i = 0; i < tableData.length; i++) {
-      // iterate through the data to be applied.
-      let tableIndex = _table.indexOf(tableData[i]);
-
-      // remove the value from the array
-      if (tableIndex > -1) {
-        _table.splice(tableIndex, 1);
-      }
-    }
-
-    // add it to cache
-    this.cache.set(table, _table);
+    if (!this.checkTable())
+      throw new Error(`Table ${table} does not exist.`);
 
     let parseData = [];
     let WHERE_CLAUSE = Object.entries(filter).map(([k, v]) => {
@@ -162,35 +112,8 @@ module.exports = class {
    */
 
   update(table, data = [], filters) {
-    const _table = this.cache.get(table);
-
-    if (!_table)
+    if (!this.checkTable(table))
       throw new Error(`Table ${table} doesn't exist.`);
-
-    let tableData = _table.filter(this.createFilter(filters));
-    if (tableData.length < 1)
-      return false;
-
-    // iterate through filtered data
-    for (let i = 0; i < tableData.length; i++) {
-      // iterate through the data to be applied.
-      let tableIndex = _table.indexOf(tableData[i]);
-
-      for (let x = 0; x < data.length; x++) {
-        tableData[i][data[x].column] = data[x].value;
-      }
-
-      // once the changes are applied, add them to cache.
-      _table[tableIndex] = tableData[i];
-    }
-
-    // update the cache
-    this.cache.set(table, _table);
-
-    /*
-      EVERYTHING AFTER THIS IS ABOUT UPDATING IT IN THE DATABASE ITSELF.
-      WE CAN'T JUST LEAVE THE DATABASE UNCHANGED
-    */
 
     // This is an array of an array that contains the key of the object "filters" and it's value
     let FILTER_ENTRIES = Object.entries(filters);
@@ -225,5 +148,16 @@ module.exports = class {
     let filtered = Object.entries(filters);
 
     return ((data) => filtered.every(([k, v]) => data[k] === v));
+  }
+
+  _get(table, filter) {
+    let parseData = [];
+    let FILTERS = Object.entries(filter);
+    let WHERE_CLAUSE = FILTERS.map(([k, v]) => {
+      parseData.push(v);
+      return `${k} = (?)`;
+    }).join(' AND ');
+
+    return this.db.query(`SELECT * FROM ${this.options.database}.${table} WHERE ${WHERE_CLAUSE}`, parseData);
   }
 };
