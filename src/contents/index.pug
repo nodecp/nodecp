@@ -1,0 +1,11 @@
+if !req.session.has('account') 
+  p Currently not logged in.
+  button(onclick="location.href='/login'" type="button") Login
+else
+  p Currently logged in as "#{req.session.get('account').userid}"
+  form(action="/logout" method="POST")
+    button(name="logout-btn" value="Logout") Logout
+  
+  br
+  p Change Password?
+  button(name="changepass" onclick="location.href = '/changepass'") Change Password

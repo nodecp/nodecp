@@ -1,0 +1,16 @@
+script(src="https://hcaptcha.com/1/api.js" async defer)
+
+form(action="/changepass" method="POST")
+  if req.getConfig().HCaptcha.enabled
+    div(class="h-captcha" data-sitekey=req.getConfig().HCaptcha['site-key'])
+
+  br
+  label(for="oldpass") Old Password
+  input(type="password" id="oldpass" name="oldpass" required)
+
+  br
+  label(for="newpass") New Password
+  input(type="newpass" id="newpass" name="newpass" required)
+
+  br
+  input(type="submit" value="Change Password")

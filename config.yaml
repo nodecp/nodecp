@@ -1,0 +1,91 @@
+# whether or not to reload config every request
+reloadConfigPerRequest: true
+
+# HCaptcha Settings
+HCaptcha:
+  enabled: false
+  site-key: 
+  secret-key:
+  url: https://hcaptcha.com/siteverify
+
+# Whether or not to allow console logging.
+allowDebugging: true
+
+# Mysql Server
+mysql:
+  host: localhost
+  user: ragnarok
+  password: ragnarok
+  database: ragnarok
+  port: 3306
+
+# Whether or not to auto log out when password was changed.
+LogOutUponChangePass: false
+
+# everything inside the "webserver" is static and won't change unless restarted
+webserver:
+  # the port the webserver will use
+  port: 80
+
+  # file names for middlewares inside /src/vesta/middlewares
+  middlewares:
+    - DEFAULTS
+    - SERVE_STATIC
+    - LOAD_NEW_FILES
+    - BODY_PARSER
+    - CAPTCHA
+
+  # options for storing sesssions
+  sessions:
+    # the secret used for sessions (cookies)
+    # default is the md5 hash of the base64 form of the word "ragnarok"
+    secret: d72ed3eb33373c5f9176d49faf497ad0
+
+    # This option controls the default session "driver" that will be used on requests
+    # choices: memory, file
+    # default: memory
+    driver: memory
+
+    # amount of time in milliseconds before the session expires
+    # 0 - infinite
+    # default: 300000 (5mins)
+    lifetime: 300000
+
+    # whether or not to expire the session immeadiately after browser closes regardless of the time
+    # default: false
+    expireOnClose: false
+
+  # determins what file would the be rendered by the "/" route
+  # adding "/" would mean in a different dir
+  # default: index
+  homepage: index
+
+  restana:
+    # methods for restana
+    methods:
+      - get
+      - delete
+      - put
+      - patch
+      - post
+      - head
+      - options
+      - trace
+
+    # whether or not to ignore trailing slash (default: true)
+    ignoreTrailingSlash: true
+
+    # defines the custom length for parameters in parametric routes. (default: 100)
+    maxParamLength: 100
+
+    # options for a secure webserver
+    secure:
+      # whether or not to use ssl (https:// at begining)
+      # default: false
+      enabled: false
+
+      # the ssl key (default: null)
+      key: null
+
+      # the ssl certificate (default: null)
+      cert: null
