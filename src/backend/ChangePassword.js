@@ -3,7 +3,7 @@ const EXPORTS = {};
 EXPORTS.method = "post";
 EXPORTS.route = "/changepass";
 
-EXPORTS.run = function(req, res) {
+EXPORTS.run = async function(req, res) {
   if (!req.body || !req.body.oldpass || !req.body.newpass)
     return res.send('Please give all required fields.');
 
