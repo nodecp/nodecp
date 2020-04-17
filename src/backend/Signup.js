@@ -23,8 +23,8 @@ EXPORTS.run = async function(req, res) {
     return res.send('Please fill up all required fields.');
 
 
-  if (req.getDatabase().fetch('login', (data) => {
-    return data.userid.toLowerCase() === req.body.username.toLowerCase()
+  if (req.getDatabase().fetch('login', {
+  	userid: req.body.username.toLowerCase()
   }).length >= 1)
     return res.send('Account already exists.');
 
