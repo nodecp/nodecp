@@ -1,6 +1,6 @@
 {
   "name": "nodecp",
-  "version": "2.0",
+  "version": "2.0.0",
   "description": "A Fast (WIP) Control Panel for rAthena and Hercules.",
   "main": "app.js",
   "dependencies": {
