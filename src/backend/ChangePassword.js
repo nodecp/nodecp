@@ -19,8 +19,8 @@ EXPORTS.run = async function(req, res) {
   }
 
   let LoggedInAccount = req.session.get('account');
-  let account = req.getDatabase().fetch('login', function(data) {
-    return data.userid.toLowerCase() === LoggedInAccount.userid.toLowerCase();
+  let account = req.getDatabase().fetch('login', {
+    userid: LoggedInAccount.userid.toLowerCase()
   });
 
   // another precaution if that account suddenly didn't exist.
@@ -40,13 +40,13 @@ EXPORTS.run = async function(req, res) {
       value: req.body.newpass
     }
   ], {
-    userid: LoggedInAccount.userid
+    userid: LoggedInAccount.userid.toLowerCase()
   });
 
   if (req.getConfig().LogOutUponChangePass) {
     //req.session.set('account', null)
     req.session.remove('account');
-    return res.send('Successfully changed password, will not log you out.');
+    return res.send('Successfully changed password, will now log you out.');
   } else {
     return res.send('Successfully changed your password.');
   }

@@ -6,14 +6,12 @@ const chokidar = require('chokidar');
 const path = require('path');
 
 module.exports = class extends EventEmitter {
-  constructor(ConfigData) {
+  constructor(Config, connection) {
     super();
-
-    this.config = YAML.parse(ConfigData);
 
     Object.defineProperties(this, {
       http: {
-        value: require('restana')(this.config.webserver.restana)
+        value: require('restana')(Config.webserver.restana)
       },
 
       pug: {
@@ -22,6 +20,16 @@ module.exports = class extends EventEmitter {
 
       dir: {
         value: __dirname
+      },
+
+      config: {
+        value: Config,
+        enumerable: true,
+        writable: true
+      },
+    
+      connection: {
+        value: connection
       }
     });
   }

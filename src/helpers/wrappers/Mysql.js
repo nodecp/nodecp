@@ -39,12 +39,18 @@ module.exports = class {
    * @returns {Array}
    */
 
-  fetch(table, filter) {
+  fetch(table, filter = {}) {
     return this._get(table, filter);
   }
 
+  /**
+   * Checks if the table exists in the database
+   * @param {String} table The table to check
+   * @returns {Boolean}
+   */
+
   checkTable(table) {
-    let query = this.db.query(`SELECT * FROM ${this.options.table}.${table}`);
+    let query = this.db.query(`SHOW TABLES LIKE '${table}'`);
 
     if (query.length > 0)
       return true;
@@ -88,7 +94,7 @@ module.exports = class {
    * @returns {Boolean} Whether or not the execution has been successful or not.
    */
 
-  remove(table, filter) {
+  remove(table, filter = {}) {
     if (!this.checkTable())
       throw new Error(`Table ${table} does not exist.`);
 
@@ -111,7 +117,7 @@ module.exports = class {
    * @returns {Boolean} Whether or not the execution is successful.
    */
 
-  update(table, data = [], filters) {
+  update(table, data = [], filters = {}) {
     if (!this.checkTable(table))
       throw new Error(`Table ${table} doesn't exist.`);
 
@@ -150,7 +156,7 @@ module.exports = class {
     return ((data) => filtered.every(([k, v]) => data[k] === v));
   }
 
-  _get(table, filter) {
+  _get(table, filter = {}) {
     let parseData = [];
     let FILTERS = Object.entries(filter);
     let WHERE_CLAUSE = FILTERS.map(([k, v]) => {

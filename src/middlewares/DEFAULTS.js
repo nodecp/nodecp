@@ -1,11 +1,7 @@
-const Mysql = require('../helpers/wrappers/Mysql');
 const { readFileSync } = require('fs');
-const YAML = require('yaml');
 let EXPORTS;
 
 EXPORTS = function(core) {
-  const connection = new Mysql(core.config.mysql);
-
   core.http.use(function(req, res, next) {
     if (req.url !== '/' && new RegExp(/\/+$/g).test(req.url))
       req.url = req.url.replace(/\/+$/g, '');
@@ -49,7 +45,7 @@ EXPORTS = function(core) {
     }
 
     req.getDatabase = function() {
-      return connection;
+      return core.connection;
     }
 
     req.addURLParams = function(url, params) {
